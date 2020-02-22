@@ -40,5 +40,22 @@ app.on('ready', function () {
     win.loadURL(`file://${__dirname}/` + filename + `.html`)
     win.openDevTools()
 
+    var testWindow = new BrowserWindow({
+      webPreferences: {
+        nodeIntegration: true
+      },
+      width: 400,
+      height: 400,
+      show:false,
+    })
 
+    testWindow.loadURL('file://' + __dirname + '/test.html')
+    testWindow.setMenuBarVisibility(false)
+    ipcMain.on('start-test', function () {
+      console.log('test');
+      if (testWindow.isVisible())
+        testWindow.hide()
+      else
+        testWindow.show()
+    })
   }

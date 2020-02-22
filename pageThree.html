@@ -25,11 +25,8 @@ var item_select = document.getElementById('dynamic-select')
 
 var btn = document.getElementById('openFile')
 var add = document.getElementById('addFile')
-add.addEventListener('click',()=>{
-
-});
-
 const remote = require('electron').remote
+const ipcMain = require('electron').ipcMain
 const fs=require('fs')
 let categories = fs.readdirSync('./categories')
 for(let category of categories){
