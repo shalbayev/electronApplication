@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <button type="button" id="returned">Opeeeen</button>
+</head>
+<body>
+<script>
+  require('./test.js')
+  fs = require('fs')
+  const urlParams = new URLSearchParams(window.location.search)
+  let subject = urlParams.get('selectedSubject')
+  let theme = urlParams.get('selectedThemes').split(',')
+  let subtheme = urlParams.get('selectedSubThemes').split(',')
+  let path = './categories/' + subject;
+  for(let x = 0;x<theme.length;x++){
+    var ex_path = path + '/' + theme[x];
+    if (fs.existsSync(ex_path)) {
+      for(let i = 0;i<subtheme.length;i++){
+        var ex_path2 = ex_path + '/' + subtheme[i]
+        if (fs.existsSync(ex_path2)) {
+          console.log(fs.readdirSync(ex_path2));
+        }
+
+
+
+
+      }
+    }
+
+  }
+  console.log(theme);
+</script>
+</body>
+
+</html>
