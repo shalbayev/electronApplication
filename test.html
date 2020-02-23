@@ -3,42 +3,138 @@
   <head>
     <meta charset="utf-8">
     <title></title>
+    <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
+    <style media="screen">
+      body,html{
+        font-size: 1.2vw;
+        height: 96%
+      }
+    </style>
   </head>
   <body>
-    <nav id="navbar-example3" class="navbar navbar-light bg-light">
-      <a class="navbar-brand" href="#">Вопросы</a>
-      <nav class="nav nav-pills flex-column">
-        <a class="nav-link" href="#item-1">Вопрос 1</a>
-        <nav class="nav nav-pills flex-column">
-        </nav>
-        <a class="nav-link" href="#item-2">Вопрос 2</a>
-        <a class="nav-link" href="#item-3">Item3</a>
-        <nav class="nav nav-pills flex-column">
-        </nav>
-      </nav>
-    </nav>
 
-    <div data-spy="scroll" data-target="#navbar-example3" data-offset="0">
-      <h4 id="item-1">Пункт 1</h4>
-      <p>...</p>
-      <h5 id="item-1-1">Пункт 1-1</h5>
-      <p>...</p>
-      <h5 id="item-1-2">Пункт 2-2</h5>
-      <p>...</p>
-      <h4 id="item-2">Пункт 2</h4>
-      <p>...</p>
-      <h4 id="item-3">Пункт 3</h4>
-      <p>...</p>
-      <h5 id="item-3-1">Пункт 3-1</h5>
-      <p>...</p>
-      <h5 id="item-3-2">Пункт 3-2</h5>
-      <p>...</p>
+
+    <div  id="app" class="container-fluid mx-0  mt-2 h-100 w-100">
+      <div class="row h-100">
+        <div class="col-2">
+          <div id="list-example" class="list-group">
+            <p class="list-group-item">
+              Фамилия: {{surname}}<br>
+              Имя: {{name}} <br>
+              Предмет: {{selectedSubject}} <br>
+           </p>
+            <a v-for="(question,index) in questions" class="list-group-item list-group-item-action" :href="'#list-item-'+index">Вопрос {{index+1}}</a>
+            <button @click="finishTest" class="mt-3 btn btn-danger" >Завершить тест!</button>
+          </div>
+        </div>
+        <div class="col-10" style="position:relative;overflow-y: scroll;height:100%;width:100%">
+          <div data-spy="scroll" data-target="#list-example" data-offset="0" class="scrollspy-example w-100">
+            <div v-for="(question,index) in questions" class="">
+              <img  :src="question" :id="'list-item-'+index" alt="">
+              <p>
+                <div class="form-check ml-2 mb-2" >
+                  <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+                  <label class="form-check-label" for="exampleRadios1">
+                    A
+                  </label>
+                </div>
+                <div class="form-check ml-2 mb-2" >
+                  <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+                  <label class="form-check-label" for="exampleRadios1">
+                    B
+                  </label>
+                </div>
+                <div class="form-check ml-2 mb-2" >
+                  <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+                  <label class="form-check-label" for="exampleRadios1">
+                    C
+                  </label>
+                </div>
+                <div class="form-check ml-2 mb-2" >
+                  <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+                  <label class="form-check-label" for="exampleRadios1">
+                    D
+                  </label>
+                </div>
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
     </div>
 
 
 
+
   </body>
+  <script type="text/javascript" src="./asserts/js/vue.js">
+</script>
   <script type="text/javascript">
     require('./main.js')
+    require('bootstrap')
+    const {remote} = require('electron')
+    const main = remote.require('./app.js');
+    const fs = require('fs');
+    window.$ = require('jquery')
+    window.JQuery = require('jquery')
+    function get_all_path(subject,themes,subthemes) {
+      let paths=[]
+      let path='./categories/'+subject+'/'
+      let theme_path=''
+      let subtheme_path=''
+
+      if(fs.existsSync(path)){
+        for(let theme of themes){
+          theme_path=path
+          if(fs.existsSync(path+theme+'/')){
+            theme_path+=theme+'/'
+            for(let subtheme of subthemes){
+              subtheme_path=theme_path
+              if(fs.existsSync(subtheme_path+subtheme+'/')){
+                console.log(subtheme_path+subtheme+'/');
+                for(let question of fs.readdirSync(subtheme_path+subtheme+'/'))
+                  paths.push(subtheme_path+subtheme+'/'+question)
+              }
+            }
+          }
+
+        }
+      }
+      return paths;
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log(urlParams.get('selectedThemes'));
+    var app = new Vue({
+      el:'#app',
+      data:{
+        name: urlParams.get('name'),
+        surname:urlParams.get('surname'),
+        selectedThemes:urlParams.get('selectedThemes').split(','),
+        selectedSubject:urlParams.get('selectedSubject'),
+        selectedSubThemes:urlParams.get('selectedSubThemes').split(','),
+        questions:[]
+      },
+
+
+      mounted(){
+        this.printa()
+        this.questions=get_all_path(this.selectedSubject,this.selectedThemes,this.selectedSubThemes)
+      },
+      methods:{
+        printa(){
+          console.log(this.selectedSubThemes);
+        },
+        finishTest(){
+          main.openWindow('finish',[],false,true,400,200)
+        }
+      },
+
+
+    })
+
   </script>
+
 </html>

@@ -1,8 +1,10 @@
+
 const {remote, ipcRenderer} = require('electron')
+const main = remote.require('./app.js');
+
 const {Menu, MenuItem} = remote
 const fs = require('fs');
 const menu = new Menu()
-
 menu.append(new MenuItem(
   {
     label: 'Electron',
@@ -34,4 +36,16 @@ function get_themes_by_subjects(subject){
   return themes;
 
 
+}
+serialize = function(obj) {
+  var str = [];
+  for (var p in obj)
+    if (obj.hasOwnProperty(p)) {
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+    }
+  return str.join("&");
+}
+
+function openTestWindow(data){
+   main.openWindow('test',serialize(data),true,false)
 }

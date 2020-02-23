@@ -28,16 +28,20 @@ app.on('ready', function () {
       secondWindow.show()
   })
   })
-  exports.openWindow = (filename) =>{
+  exports.openWindow = (filename,data,maximize=false,frame=true,width=800,height=600) =>{
 
     let win = new BrowserWindow({
       webPreferences: {
         nodeIntegration: true
       },
-      width:800,
-      height:600
+      width:width,
+      height:height,
+      frame:frame,
     })
-    win.loadURL(`file://${__dirname}/` + filename + `.html`)
+    win.setMenuBarVisibility(false)
+    win.loadURL(`file://${__dirname}/` + filename + `.html?${data}`)
+    if (maximize)
+      win.maximize()
     win.openDevTools()
 
     var testWindow = new BrowserWindow({
