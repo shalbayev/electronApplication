@@ -28,15 +28,35 @@
         <option v-for="subject in subjects">{{subject}}</option>
       </select>
       <label for="topiclist" v-if="themes.length" >Выберите темы:</label>
-      <div class="list-group mb-2" id="topiclist" >
-        <button type="button" v-for="theme in themes" @click="setActive(theme.id)" class="list-group-item list-group-item-action"   ref="theme">
-          {{theme.theme}}
-        </button>
+        <div class="" id="list-item-1">
+          <div class="list-group mb-2" id="topiclist" >
+            <div class="" v-for="theme in themes">
+              <button type="button" data-toggle="collapse"  :data-target="'#'+theme.id" aria-expanded="false" :aria-controls="(theme.id)"  @click="setActive(theme.id,theme.theme.theme)" class="list-group-item list-group-item-action" ref="theme">
+                {{theme.theme.theme}}
+              </button>
+              <div class="collapse" :id="theme.id">
+                <div class="form-check ml-2 " v-for="subtheme in theme.theme.sub_theme">
+                  <input class="form-check-input" @change="set_subthemes(subtheme)" type="checkbox" name="exampleRadios" id="exampleRadios1">
+                  <label class="form-check-label" for="exampleRadios1">
+                    {{subtheme}}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+
+
+            </div>
+        </div>
+
       </div>
+
       <!-- Default unchecked -->
-      <div class="custom-control custom-radio mb-2">
-        <input type="radio" class="custom-control-input" id="defaultUnchecked" name="defaultExampleRadios">
-        <label class="custom-control-label" for="defaultUnchecked">Подсказки</label>
+      <div class="form-check ml-2 mb-2" >
+        <input class="form-check-input" v-model="tips" type="checkbox" name="exampleRadios" id="exampleRadios1">
+        <label class="form-check-label" for="exampleRadios1">
+          Подсказки
+        </label>
       </div>
 
 
@@ -49,11 +69,17 @@
 
 
   </div>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript" src="main.js"></script>
 <script type="text/javascript" src="./asserts/js/vue.js">
 </script>
   <script  >
   require('./main.js')
-  const {remote, ipcRenderer} = require('electron')
+  window.$ = require('jquery')
+  window.JQuery = require('jquery')
+  require('bootstrap')
   let subjects=get_subjects()
   var app = new Vue({
   el: '#app',
@@ -63,7 +89,9 @@
     subjects:subjects,
     selectedSubject:'',
     themes:[],
-    selectedThemes:[]
+    selectedThemes:[],
+    selectedSubThemes:[],
+    tips:false
 
   },
   methods:{
@@ -71,27 +99,51 @@
       console.log(this.name);
       console.log(this.surname);
       console.log(this.selectedSubject);
+      console.log(this.selectedThemes)
+      console.log(this.selectedSubThemes)
+      console.log(this.tips);
+
+    },
+    set_subthemes(subtheme){
+      if(this.selectedSubThemes.includes(subtheme))
+        this.selectedSubThemes.splice(this.selectedSubThemes.indexOf(subtheme),1)
+      else {
+        this.selectedSubThemes.push(subtheme)
+      }
     },
     get_themes(){
-      // this.themes=get_themes_by_subjects(this.selectedSubject)
+      this.themes=get_themes_by_subjects(this.selectedSubject)
 
-      this.themes=['Math for dummies','Math for smarts']
+      // this.themes=['Math for dummies','Math for smarts']
       for(let i=0;i<this.themes.length;i++){
         this.themes[i]={id:i,theme:this.themes[i]}
       }
     },
-    setActive(id){
+    setActive(id,name){
       console.log(this.selectedThemes);
-      if(this.selectedThemes.includes(id)){
-        this.selectedThemes.splice(this.selectedThemes.indexOf(id),1)
+      if(this.selectedThemes.includes(name)){
+        this.selectedThemes.splice(this.selectedThemes.indexOf(name),1)
         this.$refs.theme[id].className="list-group-item list-group-item-action"
       }
       else {
-        this.selectedThemes.unshift(id)
+        this.selectedThemes.unshift(name)
         this.$refs.theme[id].className="list-group-item list-group-item-action active"
 
       }
+      $('#'+id).collapse('toggle')
+
     },
+    startTest(){
+      openTestWindow({
+        name:this.name,
+        surname:this.surname,
+        selectedSubject:this.selectedSubject,
+        selectedThemes:this.selectedThemes,
+        selectedSubThemes:this.selectedSubThemes,
+        tips:this.tips
+      })
+    }
+
 
   },
 
@@ -105,5 +157,4 @@
 
   </script>
 
-</body>
 </html>

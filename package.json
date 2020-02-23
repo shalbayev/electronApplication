@@ -11,6 +11,7 @@
     "bootstrap": "^4.4.1",
     "electron": "^8.0.1",
     "jquery": "^3.4.1",
+    "popper.js": "^1.16.1",
     "vue": "^2.6.11"
   },
   "devDependencies": {},
