@@ -28,7 +28,7 @@ app.on('ready', function () {
       secondWindow.show()
   })
   })
-  exports.openWindow = (filename) =>{
+  exports.openWindow = (filename,data) =>{
 
     let win = new BrowserWindow({
       webPreferences: {
@@ -37,8 +37,7 @@ app.on('ready', function () {
       width:800,
       height:600
     })
-    win.loadURL(`file://${__dirname}/` + filename + `.html`)
+    win.loadURL(`file://${__dirname}/` + filename + `.html?${data}`)
     win.openDevTools()
-
-
   }
+  //=============================================================================
