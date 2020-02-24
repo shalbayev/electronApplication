@@ -1,18 +1,18 @@
 
 const {remote, ipcRenderer} = require('electron')
 const main = remote.require('./app.js');
-
+let mainWindow=remote.getGlobal('mainWindow')
 const {Menu, MenuItem} = remote
 const fs = require('fs');
 const menu = new Menu()
 menu.append(new MenuItem(
   {
-    label: 'Electron',
+    label: 'Основное',
     submenu: [
       {
-        label: 'Admin',
+        label: 'Добавить/Изменить вопрос',
         click: function () {
-            ipcRenderer.send('toggle-prefs')
+            main.openWindow('prefs',[],false,false,500,150)
         }
       }
     ]

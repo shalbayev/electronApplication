@@ -5,36 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Enter password</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
 
 </head>
 <body>
-  <div id="form-container" class="container">
+
+  <form class="container-fluid mt-2">
     <div class="form-group">
-      <input type="password" placeholder="Password: " class="form-control" id="password">
-      <button class="btn btn-success" id="signInBtn">Sign In</button>
+      <label for="exampleInputPassword1">Пароль:</label>
+      <input type="password" class="form-control" id="password">
     </div>
-  </div>
+    <button type="submit" id="signInBtn" class="btn btn-primary">Продолжить</button>
+    <button type="button" onclick="closeWindow()" class="btn btn-danger">Отмена</button>
 
-</body><script>
-require('./renderer.js')
-const remote = require('electron').remote
-const main = remote.require('./app.js')
+</form>
 
+</body>
+<script>
+  const remote = require('electron').remote
+  const main = remote.require('./app.js')
+  var win = remote.getCurrentWindow()
 
+  require('bootstrap')
+  win.focus()
+  window.focus()
+  var password = document.getElementById('password');
+  var btn = document.getElementById('signInBtn');
+  btn.addEventListener('click',()=>{
+    if (password.value==="123"){
+      main.openWindow('pageThree',[],false,true,800,500,true)
+      window.close()
+    }
+  })
 
-var pin_code = document.getElementById('password');
-console.log(pin_code);
-var new_page = document.getElementById('signInBtn');
-console.log(new_page);
-new_page.addEventListener('click',()=>{
-  if (pin_code.value==="123"){
-    main.openWindow('pageThree')
+  function closeWindow(){
     window.close()
   }
-})
 
-
+  window.addEventListener('blur',()=>{
+    if(!win.isFocused())
+      win.close()
+  })
 
 
 

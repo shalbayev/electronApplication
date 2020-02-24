@@ -1,93 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="design.css">
-  <title>Page Three</title>
-</head>
-<body>
-  <h1>Page three!!!</h1>
-  <div class="content">
-    <button type="button" name="button" id='openFile'>Open</button>
-  </div>
-  <select id="dynamic-select">
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
 
-    </select>
+  </head>
+  <body>
+    <div class="container-fluid mt-2" id="app" >
+      <form>
+        <div class="form-group">
+          <label for="exampleFormControlInput1">Выберите предмет:</label>
+          <select class="form-control" name="" @change="get_themes" v-model="selectedSubject">
+            <option v-for="subject in subjects"  :value="subject">{{subject}}</option>
+          </select>
+          <button type="button" class="btn btn-primary mt-1" @click="addSubject()" name="button">Добавить предмет</button>
+          <button type="button" class="btn btn-danger mt-1" name="button">Удалить предмет</button>
 
-    <button id="addFile">add item</button>
+        </div>
+        <div class="form-group">
+          <label for="exampleFormControlSelect1">Выберите темы:</label>
+          <select @change="get_subthemes" v-model="selectedTheme" class="form-control" id="exampleFormControlSelect1">
+            <option v-for="theme in themes" :value="theme.theme">{{theme.theme}}</option>
+           </select>
+          <button type="button" class="btn btn-primary mt-1" name="button">Добавить тему</button>
+          <button type="button" class="btn btn-danger mt-1" name="button">Удалить тему</button>
 
-</body>
+        </div>
+        <div class="form-group">
+          <label for="exampleFormControlSelect2">Выберите подтемы:</label>
+          <select multiple  class="form-control" id="exampleFormControlSelect2">
+            <option v-for="theme in subthemes" :value="theme">{{theme}}</option>
+          </select>
+          <button type="button" class="btn btn-primary mt-1" name="button">Добавить подтему</button>
+          <button type="button" class="btn btn-danger mt-1" name="button">Удалить подтему</button>
 
-<script>
-var item_select = document.getElementById('dynamic-select')
+        </div>
 
-var btn = document.getElementById('openFile')
-var add = document.getElementById('addFile')
-const remote = require('electron').remote
-const ipcMain = require('electron').ipcMain
-const fs=require('fs')
-let categories = fs.readdirSync('./categories')
-for(let category of categories){
-  option='<option>'+category+'</option>'
-  item_select.innerHTML+=option
+      </form>
+    </div>
 
-}
+  </body>
+  <script type="text/javascript" src="main.js"></script>
 
-const main = remote.require('./app.js')
-const dialog=remote.dialog
-const an_dialog=remote.dialog
-let filePaths=[]
+  <script type="text/javascript" src="./asserts/js/vue.js"></script>
 
-    btn.addEventListener('click',()=>{
-      dialog.showOpenDialog({
-        properties:['openFile'],
-        filters:[
-          { name: 'Изображения', extensions: ['jpg', 'png', 'gif'] },
-
-        ]
+  <script type="text/javascript">
+    require('bootstrap')
+    var vue=new Vue({
+      el:"#app",
+      data:{
+        subjects:get_subjects(),
+        selectedSubject:'',
+        themes:'',
+        selectedTheme:'',
+        subthemes:'',
+      },
+      methods:{
+        get(){
+          console.log(this.selectedSubject);
+        },
+        get_themes(){
+          this.themes=get_themes_by_subjects(this.selectedSubject)
+          console.log(this.themes);
+        },
+        get_subthemes(){
+          for(let theme of this.themes){
+            if(this.selectedTheme===theme.theme){
+              this.subthemes=theme.sub_theme
+            }
+          }
+        },
+        addSubject(){
+          main.openWindow('createSubject',[])
+        }
       }
-    ).then(result=>{
-      filePaths=result.filePaths;
-      read_image()
     })
-    })
-    function read_image() {
-      fs.readFile(filePaths[0],(err,data)=>{
-        if(err)
-          console.log(err);
-        save_image(data)
-      })
-
-    }
-    function get_fileName(path){
-      var fileName=fs.readdirSync(path)
-
-
-
-      console.log(fileName);
-      return path + "/" + (fileName.length + 1)
-    }
-    function save_image(image_data) {
-      let vaf = filePaths[0].split("\\")
-      let word = vaf[vaf.length-1]
-      let res = word.split('.')
-      let extension=res[res.length-1]
-      console.log(extension);
-      let fileName = get_fileName('./')
-
-
-        fs.writeFile(fileName +"."+ extension,image_data,(err)=>{
-          if(err)
-            return console.log(err);
-          console.log('success');
-          console.log(filePaths[0])
-        })
-
-
-    }
-
   </script>
-
 </html>
