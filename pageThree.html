@@ -46,7 +46,28 @@
   <script type="text/javascript" src="./asserts/js/vue.js"></script>
 
   <script type="text/javascript">
+    require('./renderer.js')
+    const BrowserWindow =remote.BrowserWindow
+    const ipcMain=remote.ipcMain
+    ipcMain.on('refresh',()=>{
+      window.location.reload()
+    })
     require('bootstrap')
+    function createWindow(filename){
+      var createWindow = new BrowserWindow({
+        webPreferences: {
+          nodeIntegration: true
+        },
+        width: 500,
+        height: 500,
+        show: false,
+      })
+      createWindow.openDevTools()
+
+      createWindow.loadURL('file://' + __dirname + "/"+filename+".html")
+      return createWindow
+    }
+
     var vue=new Vue({
       el:"#app",
       data:{
@@ -56,6 +77,8 @@
         selectedTheme:'',
         subthemes:'',
       },
+
+
       methods:{
         get(){
           console.log(this.selectedSubject);
@@ -72,7 +95,8 @@
           }
         },
         addSubject(){
-          main.openWindow('createSubject',[])
+          let newSubject=createWindow('createSubject')
+          newSubject.show()
         }
       }
     })

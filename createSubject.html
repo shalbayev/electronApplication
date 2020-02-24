@@ -7,14 +7,19 @@
   <title>Document</title>
 </head>
 <body>
-  <form>
+
   <input type="text" id="choose" name="choose"><br><br>
 <button id="submit">submit</button>
 <button type="button">Open image</button>
-</form><script>
+<script>
+  const remote = require('electron').remote
+
+  let win =remote.getCurrentWindow()
   const fs=require('fs')
   const ipcRenderer = require('electron').ipcRenderer
-
+  win.on('close',(e)=>{
+    ipcRenderer.send('refresh')
+  })
   var dir_name = document.getElementById("choose")
   var submit = document.getElementById("submit")
   var fileName = dir_name.value
@@ -22,11 +27,9 @@
     fs.mkdir('./categories/' + dir_name.value,(err)=>{
       if(err)
         console.log(err)
-
       ipcRenderer.send('refresh')
     })
   });
-  var canvasBuffer = require('electron-canvas-to-buffer')
 // // your canvas drawing
 // var canvas = document.createElement('canvas')
 // var context = canvas.getContext('2d')
