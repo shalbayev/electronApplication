@@ -11,37 +11,22 @@
     <form>
       <div class="form-group mt-2">
         <label for="exampleFormControlFile1">Выберите изображение:</label>
-        <input type="file" @change="onloadFile" class="form-control-file" id="exampleFormControlFile1">
+        <input :key="finished" multiple type="file" @change="onloadFile" class="form-control-file" id="exampleFormControlFile1">
       </div>
-      <div v-if="selectedFilePath" class="container mx-auto mt-2 list-group-item row">
+      <div :key='fileIndex' v-if="selectedFilePath && !finished" class="container mx-auto mt-2 list-group-item row">
         <div class="" style="width: 20rem">
           <img :src="selectedFilePath" class="img-fluid" style="max-width: 100%;height: auto;" alt="">
         </div>
         <div class="row mt-4 ml-2">
-          <div class="form-check ml-2 mb-2" >
-            <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+          <div v-for="label in ['A','B','C','D']" class="form-check ml-2 mb-2" >
+            <input class="form-check-input" type="checkbox" @change="set_answers(label)" name="exampleRadios" id="exampleRadios1">
             <label class="form-check-label" for="exampleRadios1">
-              A
+              {{label}}
             </label>
           </div>
-          <div class="form-check ml-2 mb-2" >
-            <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-            <label class="form-check-label" for="exampleRadios1">
-              B
-            </label>
-          </div>
-          <div class="form-check ml-2 mb-2" >
-            <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-            <label class="form-check-label" for="exampleRadios1">
-              C
-            </label>
-          </div>
-          <div class="form-check ml-2 mb-2" >
-            <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-            <label class="form-check-label" for="exampleRadios1">
-              D
-            </label>
-          </div>
+        </div>
+        <div :key="fileIndex" class="text-muted">
+          {{fileIndex+1}} из {{selectedFiles.length}}
         </div>
       </div>
       <button type="button" class="btn btn-primary mt-2" @click="saveQuestion" name="button">Добавить</button>
@@ -55,27 +40,52 @@
   <script>
     var fs=require('fs')
     require('bootstrap')
+
     const urlParams = new URLSearchParams(window.location.search);
     console.log(urlParams.get('path'))
     var app=new Vue({
       el:'#app',
       data:{
         selectedFilePath:'',
-        selectedFile:'',
+        selectedFiles:'',
         path:urlParams.get('path'),
+        selectedAnswers:[],
+        fileIndex:0,
+        finished:false,
       },
       methods:{
         onloadFile(event){
-          this.selectedFilePath=event.target.files[0].path
-          this.selectedFile=event.target.files[0]
+          this.finished=false
+          this.selectedFiles=event.target.files
+          this.selectedFilePath=this.selectedFiles[this.fileIndex].path
+          this.selectedFile=this.selectedFiles[this.fileIndex]
         },
         closeWindow(){
           window.close()
         },
+        set_answers(label){
+          if(this.selectedAnswers.includes(label))
+            this.selectedAnswers.splice(this.selectedAnswers.indexOf(label),1)
+          else
+            this.selectedAnswers.push(label)
+        },
         saveQuestion(){
-          let filename=fs.readdirSync(this.path)
+
+          let filename=(fs.readdirSync(this.path).length+1)+'.'+this.selectedFile.name.split('.')[1]
+          let json_file=JSON.parse(fs.readFileSync('./data.json'))
+
+          json_file[this.path+"/"+filename]=this.selectedAnswers
+          fs.writeFileSync('./data.json',JSON.stringify(json_file))
           let image_data=fs.readFileSync(this.selectedFilePath)
-          fs.writeFileSync(this.path+'/'+(filename.length+1)+'.'+this.selectedFile.name.split('.')[1],image_data)
+          fs.writeFileSync(this.path+'/'+filename,image_data)
+          console.log(JSON.parse(fs.readFileSync('./data.json')))
+          if(this.selectedFiles.length-1>this.fileIndex){
+            this.fileIndex+=1
+            this.selectedFilePath=this.selectedFiles[this.fileIndex].path
+            this.selectedFile=this.selectedFiles[this.fileIndex]
+          }
+          else
+            this.finished=true
         }
       }
     })

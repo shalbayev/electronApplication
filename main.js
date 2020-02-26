@@ -20,6 +20,8 @@ menu.append(new MenuItem(
 )
 
 Menu.setApplicationMenu(menu)
+
+
 function get_subjects(){
   let categories = fs.readdirSync('./categories')
   return categories

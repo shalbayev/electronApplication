@@ -23,7 +23,7 @@
           <select @change="get_subthemes" v-model="selectedTheme" class="form-control" id="exampleFormControlSelect1">
             <option v-for="theme in themes" :value="theme.theme">{{theme.theme}}</option>
            </select>
-          <button type="button" v-if="selectedSubject" class="btn btn-primary mt-1" name="button">Добавить тему</button>
+          <button type="button" v-if="selectedSubject" class="btn btn-primary mt-1" @click="addTheme" name="button">Добавить тему</button>
           <button type="button" v-if="selectedTheme" class="btn btn-danger mt-1" name="button">Удалить тему</button>
 
         </div>
@@ -36,7 +36,7 @@
           <button type="button" v-if="selectedSubTheme" class="btn btn-danger mt-1" name="button">Удалить подтему</button>
         </div>
         <div class="form-group">
-          <label for="">Выберите вопрос:</label>
+          <label >Выберите вопрос:</label>
           <select @change="set_path" v-model="selectedQuestion" class="form-control" >
             <option v-for="(question,index) in questions" :value="question">{{index+1}}</option>
            </select>
@@ -46,32 +46,32 @@
             <img  class="img-rounded"  :src="questionPath" alt="">
             <div class="row mt-2 ml-2">
               <div class="form-check ml-2 mb-2" >
-                <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-                <label class="form-check-label" for="exampleRadios1">
+                <input class="form-check-input" type="checkbox" name="exampleRadios" id="check1">
+                <label class="form-check-label" for="check1">
                   A
                 </label>
               </div>
               <div class="form-check ml-2 mb-2" >
-                <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-                <label class="form-check-label" for="exampleRadios1">
+                <input class="form-check-input" type="checkbox" name="exampleRadios" id="check2">
+                <label class="form-check-label" for="check2">
                   B
                 </label>
               </div>
               <div class="form-check ml-2 mb-2" >
-                <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-                <label class="form-check-label" for="exampleRadios1">
+                <input class="form-check-input" type="checkbox" name="exampleRadios" id="check3">
+                <label class="form-check-label" for="check3">
                   C
                 </label>
               </div>
               <div class="form-check ml-2 mb-2" >
-                <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-                <label class="form-check-label" for="exampleRadios1">
+                <input class="form-check-input" type="checkbox" name="exampleRadios" id="check4">
+                <label class="form-check-label" for="check4">
                   D
                 </label>
               </div>
             </div>
           </div>
-
+        </div>
       </form>
     </div>
 
@@ -80,27 +80,26 @@
 
   <script type="text/javascript" src="./asserts/js/vue.js"></script>
 
-  <script type="application/javascript">
-    require('./renderer.js')
-    const BrowserWindow =remote.BrowserWindow
-    const ipcMain=remote.ipcMain
-    ipcMain.on('refresh',()=>{
-      window.location.reload()
-    })
-    require('bootstrap')
-    function createWindow(filename,frame,menu,path='abc'){
+  <script type="application/javascript" defer>
+  require('./renderer.js')
+  const BrowserWindow =remote.BrowserWindow
+  const ipcMain=remote.ipcMain
+  ipcMain.on('refresh',()=>{
+    window.location.reload()
+  })
+  require('bootstrap')
+    function createWindow(filename,frame,menu,path='abc',width=400,height=350){
       var createWindow = new BrowserWindow({
         webPreferences: {
           nodeIntegration: true
         },
-        width: 500,
-        height: 500,
+        width: width,
+        height: height ,
         show: false,
         frame:frame
       })
-      createWindow.openDevTools()
       createWindow.setMenuBarVisibility(menu)
-
+      createWindow.openDevTools()
       createWindow.loadURL('file://' + __dirname + "/"+filename+".html?path="+path)
       return createWindow
     }
@@ -142,8 +141,12 @@
           console.log(this.qquestions);
         },
         addSubject(){
-          let newSubject=createWindow('createSubject',false,false)
-          newSubject.show()
+          createWindow('createSubject',false,false,'',400,120).show()
+
+        },
+        addTheme(){
+          let path='./categories/'+this.selectedSubject
+          createWindow('createTheme',false,false,path,400,120).show()
         },
         addQuestion(){
           let path='./categories/'+this.selectedSubject+"/"+this.selectedTheme+'/'+this.selectedSubTheme
@@ -155,4 +158,5 @@
       }
     })
   </script>
+
 </html>

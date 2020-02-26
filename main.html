@@ -79,6 +79,7 @@
   require('./main.js')
   window.$ = require('jquery')
   window.JQuery = require('jquery')
+
   require('bootstrap')
   let subjects=get_subjects()
   var app = new Vue({
@@ -93,6 +94,9 @@
     selectedSubThemes:[],
     tips:false
 
+  },
+  mounted(){
+    this.startupCheck()
   },
   methods:{
     get(){
@@ -141,6 +145,15 @@
         selectedThemes:this.selectedThemes,
         selectedSubThemes:this.selectedSubThemes,
         tips:this.tips
+      })
+    },
+    startupCheck(){
+      fs.access('./data.json', fs.F_OK, (err) => {
+        if (err) {
+          fs.writeFileSync('./data.json',JSON.stringify({}))
+        }
+
+        //file exists
       })
     }
 
