@@ -1,26 +1,173 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="design.css">
-  <title>Page Three</title>
-</head>
-<body>
-  <h1>Page three!!!</h1>
-  <div class="content">
-    <button type="button" name="button" id='openFile'>Open</button>
-  </div>
-  <select id="dynamic-select">
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
 
-    </select>
+  </head>
+  <body>
+    <div class="container-fluid mt-2" id="app" >
+      <form>
+        <div class="form-group">
+          <label for="exampleFormControlInput1">Выберите предмет:</label>
+          <select class="form-control" name="" @change="get_themes" v-model="selectedSubject">
+            <option v-for="subject in subjects"  :value="subject">{{subject}}</option>
+          </select>
+          <button type="button" class="btn btn-primary mt-1" @click="addSubject()" name="button">Добавить предмет</button>
+          <button type="button" class="btn btn-danger mt-1" @click="removeSubject()" name="button">Удалить предмет</button>
 
-    <button id="addFile">add item</button>
+        </div>
+        <div class="form-group">
+          <label for="exampleFormControlSelect1">Выберите темы:</label>
+          <select @change="get_subthemes" v-model="selectedTheme" class="form-control" id="exampleFormControlSelect1">
+            <option v-for="theme in themes" :value="theme.theme">{{theme.theme}}</option>
+           </select>
+          <button type="button" class="btn btn-primary mt-1" @click="addTheme()" name="button">Добавить тему</button>
+          <button type="button" class="btn btn-danger mt-1" name="button">Удалить тему</button>
 
-</body>
+        </div>
 
-  <script src="pageThree.js"></script>
+        <div class="form-group">
+          <label for="exampleFormControlSelect2">Выберите подтемы:</label>
+          <select multiple  class="form-control" id="exampleFormControlSelect2">
+            <option v-for="theme in subthemes" :value="theme">{{theme}}</option>
+          </select>
+          <button type="button" @click="addSubTheme()"class="btn btn-primary mt-1" name="button">Добавить подтему</button>
+          <button type="button" class="btn btn-danger mt-1" name="button">Удалить подтему</button>
+        </div>
+        <div class="form-group">
+         <label for="">Выберите вопрос:</label>
+         <select @change="set_path" v-model="selectedQuestion" class="form-control" >
+           <option v-for="(question,index) in questions" :value="question">{{index+1}}</option>
+          </select>
+         <button type="button" v-if="selectedSubTheme" @click="addQuestion" class="btn btn-primary mt-1" name="button">Добавить вопрос </button>
+         <button type="button" v-if="selectedQuestion" class="btn btn-danger mt-1"  name="button">Удалить вопрос</button>
+         <div v-if="questionPath" class="container mt-3 list-group-item">
+           <img  class="img-rounded"  :src="questionPath" alt="">
+           <div class="row mt-2 ml-2">
+             <div class="form-check ml-2 mb-2" >
+               <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+               <label class="form-check-label" for="exampleRadios1">
+                 A
+               </label>
+             </div>
+             <div class="form-check ml-2 mb-2" >
+               <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+               <label class="form-check-label" for="exampleRadios1">
+                 B
+               </label>
+             </div>
+             <div class="form-check ml-2 mb-2" >
+               <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+               <label class="form-check-label" for="exampleRadios1">
+                 C
+               </label>
+             </div>
+             <div class="form-check ml-2 mb-2" >
+               <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+               <label class="form-check-label" for="exampleRadios1">
+                 D
+               </label>
+             </div>
+           </div>
+         </div>
+
+     </form>
+   </div>
+      </form>
+    </div>
+  </body>
+  <script type="text/javascript" src="main.js"></script>
+  <script type="text/javascript" src="./asserts/js/vue.js"></script>
+  <script type="text/javascript">
+  var rimraf = require("rimraf");
+    require('./renderer.js')
+    const BrowserWindow =remote.BrowserWindow
+    const ipcMain=remote.ipcMain
+    ipcMain.on('refresh',()=>{
+      window.location.reload()
+    })
+    require('bootstrap')
+    function createWindow(filename,frame,menu,path='abc'){
+     var createWindow = new BrowserWindow({
+       webPreferences: {
+         nodeIntegration: true
+       },
+       width: 500,
+       height: 500,
+       show: false,
+       frame:frame
+     })
+     createWindow.openDevTools()
+     createWindow.setMenuBarVisibility(menu)
+
+     createWindow.loadURL('file://' + __dirname + "/"+filename+".html?path="+path)
+     return createWindow
+   }
+
+      var vue=new Vue({
+      el:"#app",
+      data:{
+        subjects:get_subjects(),
+        selectedSubject:'',
+        themes:'',
+        selectedTheme:'',
+        subthemes:'',
+        selectedSubTheme:'',
+        questions:'',
+        selectedQuestion:'',
+        questionPath:''
+
+      },
+      methods:{
+        get(){
+          console.log(this.selectedSubject);
+        },
+        get_themes(){
+          this.themes=get_themes_by_subjects(this.selectedSubject)
+          console.log(this.themes);
+        },
+        get_subthemes(){
+          for(let theme of this.themes){
+            if(this.selectedTheme===theme.theme){
+              this.subthemes=theme.sub_theme
+            }
+          }
+        },
+        get_questions(){
+          let path='./categories/'+this.selectedSubject+"/"+this.selectedTheme+"/"+this.selectedSubTheme
+          console.log(path);
+          this.questions=fs.readdirSync(path)
+          console.log(this.qquestions);
+        },
+        addSubject(){
+          let newSubject=createWindow('createSubject')
+          newSubject.show()
+        },
+        addTheme(){
+          let path='./categories/'+this.selectedSubject
+          let newTheme=createWindow('createTheme',false,false,path)
+          newTheme.show()
+        },addQuestion(){
+          let path='./categories/'+this.selectedSubject+"/"+this.selectedTheme+'/'+this.selectedSubTheme
+          createWindow('createQuestion',false,false,path).show()
+
+        },addSubTheme(){
+          let path='./categories/' + this.selectedSubject+'/'+this.selectedTheme
+          let newSubTheme=createWindow('createSubTheme',false,false,path)
+          newSubTheme.show()
+        },
+        set_path(){
+          this.questionPath='./categories/'+this.selectedSubject+"/"+this.selectedTheme+'/'+this.selectedSubTheme+'/'+this.selectedQuestion
+
+        },removeSubject(){
+          let path = './categories/' + this.selectedSubject
+          rimraf.sync(path);
 
 
+        }
+      }
+    })
+  </script>
 </html>
