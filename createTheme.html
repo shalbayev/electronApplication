@@ -11,11 +11,11 @@
 <body><div class="container-fluid mt-2" id="app" >
   <form>
     <div class="form-group">
-      <label for="exampleFormControlInput1">Добавьте тему:</label>
+      <label for="exampleFormControlInput1">Добавьте подтему:</label>
       <div class="input-group mb-3">
-    <input type="text" class="form-control" id="choose"placeholder="Назовите тему" aria-label="Recipient's username" aria-describedby="button-addon2">
+    <input type="text" class="form-control" id="choose" placeholder="Назовите тему" aria-label="Recipient's username" aria-describedby="button-addon2">
     <div class="input-group-append">
-      <button class="btn btn-primary" type="button" id="submit">Добавить</button>
+      <button class="btn btn-primary" type="button" onclick="pressing()"id="submit">Добавить</button>
       <button type="button" onclick="closeWindow()" class="btn btn-danger">Выйти</button>
 
     </div>
@@ -23,16 +23,67 @@
 </div>
   </form>
 </div>
+<script type="text/javascript" src="./asserts/js/vue.js">
+</script>
+  <script>
+    const fs=require('fs')
+    var dir_name = document.getElementById("choose")
+    var submit = document.getElementById("submit")
+    var fileName = dir_name.value
+    const urlParams = new URLSearchParams(window.location.search);
+
+    function pressing(){
+      fs.mkdir(urlParams.get('path')+'/' + dir_name.value,(err)=>{
+        if(err)
+          console.log(err)
+      })
+      console.log(dir_name.value);
+    }
+
+
+    //=========
+    const remote = require('electron').remote
+    require('bootstrap')
+    require('./main.js')
+    const main = remote.require('./app.js');
+    window.$ = require('jquery')
+    window.JQuery = require('jquery')
+    function closeWindow(){
+      window.close()
+    }
+
+    function get_all_path(subject,themes,subthemes) {
+      let paths=[]
+      let path='./categories/'+subject+'/'
+      let theme_path=''
+      let subtheme_path=''
+
+      if(fs.existsSync(path)){
+        for(let theme of themes){
+          theme_path=path
+          if(fs.existsSync(path+theme+'/')){
+            theme_path+=theme+'/'
+            for(let subtheme of subthemes){
+              subtheme_path=theme_path
+              if(fs.existsSync(subtheme_path+subtheme+'/')){
+                console.log(subtheme_path+subtheme+'/');
+                for(let question of fs.readdirSync(subtheme_path+subtheme+'/'))
+                  paths.push(subtheme_path+subtheme+'/'+question)
+              }
+            }
+          }
+
+        }
+      }
+      return paths;
+    }
+
+
+  </script>
   <script type="text/javascript"src="createTheme.js">
   </script>
+
 </body>
-<script>
-  const remote = require('electron').remote
-  require('bootstrap')
-  function closeWindow(){
-    window.close()
 
-  }
 
-</script>
 </html>
