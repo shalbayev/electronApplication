@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Question</title>
+    <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
+
+  </head>
+  <body>
+  <div class="container-fluid" id="app">
+    <form>
+      <div class="form-group mt-2">
+        <label for="exampleFormControlFile1">Выберите изображение:</label>
+        <input type="file" @change="onloadFile" class="form-control-file" id="exampleFormControlFile1">
+      </div>
+      <div v-if="selectedFilePath" class="container mx-auto mt-2 list-group-item row">
+        <div class="" style="width: 20rem">
+          <img :src="selectedFilePath" class="img-fluid" style="max-width: 100%;height: auto;" alt="">
+        </div>
+        <div class="row mt-4 ml-2">
+          <div class="form-check ml-2 mb-2" >
+            <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+            <label class="form-check-label" for="exampleRadios1">
+              A
+            </label>
+          </div>
+          <div class="form-check ml-2 mb-2" >
+            <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+            <label class="form-check-label" for="exampleRadios1">
+              B
+            </label>
+          </div>
+          <div class="form-check ml-2 mb-2" >
+            <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+            <label class="form-check-label" for="exampleRadios1">
+              C
+            </label>
+          </div>
+          <div class="form-check ml-2 mb-2" >
+            <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
+            <label class="form-check-label" for="exampleRadios1">
+              D
+            </label>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary mt-2" @click="saveQuestion" name="button">Добавить</button>
+      <button type="button" class="btn btn-danger mt-2" @click="closeWindow" name="button">Отмена</button>
+
+    </form>
+
+  </div>
+  </body>
+  <script type="text/javascript" src="./asserts/js/vue.js"></script>
+  <script>
+    var fs=require('fs')
+    require('bootstrap')
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log(urlParams.get('path'))
+    var app=new Vue({
+      el:'#app',
+      data:{
+        selectedFilePath:'',
+        selectedFile:'',
+        path:urlParams.get('path'),
+      },
+      methods:{
+        onloadFile(event){
+          this.selectedFilePath=event.target.files[0].path
+          this.selectedFile=event.target.files[0]
+        },
+        closeWindow(){
+          window.close()
+        },
+        saveQuestion(){
+          let filename=fs.readdirSync(this.path)
+          let image_data=fs.readFileSync(this.selectedFilePath)
+          fs.writeFileSync(this.path+'/'+(filename.length+1)+'.'+this.selectedFile.name.split('.')[1],image_data)
+        }
+      }
+    })
+  </script>
+</html>
