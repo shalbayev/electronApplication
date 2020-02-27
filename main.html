@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
 
-  <title>Test</title>
+  <title>Name company</title>
 </head>
 <body>
   <div id="app">
@@ -61,7 +61,7 @@
 
 
       <button class="btn btn-primary" type="button" @click="startTest">Начать тест!</button>
-      <button class="btn btn-primary" type="button" @click="get">тест!</button>
+      <button class="btn btn-danger" type="button" @click="closeWindow">Выйти</button>
 
     </div>
       </div>
@@ -79,15 +79,19 @@
   require('./main.js')
   window.$ = require('jquery')
   window.JQuery = require('jquery')
-
+  const app=require('electron').remote.app
   require('bootstrap')
-  let subjects=get_subjects()
-  var app = new Vue({
+  let win= require('electron').remote.getCurrentWindow()
+  win.on('close',(e)=>{
+    app.quit()
+  })
+
+  var vue = new Vue({
   el: '#app',
   data: {
     name:'',
     surname:'',
-    subjects:subjects,
+    subjects:'',
     selectedSubject:'',
     themes:[],
     selectedThemes:[],
@@ -97,6 +101,7 @@
   },
   mounted(){
     this.startupCheck()
+    this.subjects=get_subjects()
   },
   methods:{
     get(){
@@ -123,8 +128,10 @@
         this.themes[i]={id:i,theme:this.themes[i]}
       }
     },
+    closeWindow(){
+      app.quit()
+    },
     setActive(id,name){
-      console.log(this.selectedThemes);
       if(this.selectedThemes.includes(name)){
         this.selectedThemes.splice(this.selectedThemes.indexOf(name),1)
         this.$refs.theme[id].className="list-group-item list-group-item-action"
@@ -152,9 +159,13 @@
         if (err) {
           fs.writeFileSync('./data.json',JSON.stringify({}))
         }
-
-        //file exists
       })
+      if (!fs.existsSync("./categories")) {
+        fs.mkdirSync('./categories')
+      }
+      if (!fs.existsSync('./hints'))
+        fs.mkdirSync('./hints')
+
     }
 
 

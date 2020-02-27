@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Тест</title>
+    <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
+    <style media="screen">
+      body,html{
+        font-size: 1.2vw;
+        height: 96%
+      }
+    </style>
+  </head>
+  <body >
+
+
+    <div  id="app" class="container-fluid mx-0  mt-2 h-100 w-100">
+      <div class="row h-100">
+        <div class="col-2">
+          <div id="list-example" class="list-group">
+            <p class="list-group-item">
+              Фамилия: {{surname}}<br>
+              Имя: {{name}} <br>
+              Предмет: {{selectedSubject}} <br>
+           </p>
+            <a v-for="(question,index) in questions" class="list-group-item list-group-item-action" :href="'#list-item-'+index">Вопрос {{index+1}}</a>
+            <button @click="finishTest" class="mt-3 btn btn-danger" >Завершить тест!</button>
+          </div>
+        </div>
+        <div class="col-10" style="height:100%;width:100%">
+          <div id="scrollspy-id" data-spy="scroll" style="position:relative;overflow-y: scroll;height:100%;width:100%" data-target="#list-example" data-offset="0" class="scrollspy-example w-100">
+            <div v-for="(question,index) in questions" style="max-width:100%; " class="">
+              <img  :src="question" class="img-rounded img-thumbnail" :id="'list-item-'+index" alt="">
+              <p v-if="tipsPath[question]" class="mt-1">
+                <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse" @click="show_tip(index)" :data-target="'#'+index" aria-expanded="false"  :aria-controls="index">
+                  Подсказка
+                </button>
+              </p>
+              <div class="collapse" :id="index">
+                <div class="card card-body" style="max-width: 100%;height:auto ">
+                  <img :src="tipsPath[question]" class="img-fluid" alt="">
+                </div>
+              </div>
+              <p class="ml-3">
+                <div v-for="label in ['A','B','C','D']" class="form-check ml-4 mb-2 " >
+                  <input class="form-check-input" @change="set_answer(question,label)" type="checkbox" name="exampleRadios" :id="label">
+                  <label class="form-check-label" :for="label">
+                    {{label}}
+                  </label>
+                </div>
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+
+
+
+  </body>
+  <script type="text/javascript" src="main.js"></script>
+
+  <script type="text/javascript" src="./asserts/js/vue.js"></script>
+</script>
+  <script type="text/javascript">
+    require('./main.js')
+    const BrowserWindow=remote.BrowserWindow
+    require('bootstrap')
+    window.$ = require('jquery')
+    window.JQuery = require('jquery')
+    function createWindow(filename,frame,menu,data,width=400,height=350){
+      var createWindow = new BrowserWindow({
+        webPreferences: {
+          nodeIntegration: true
+        },
+        width: width,
+        height: height ,
+        show: false,
+        frame:frame
+      })
+      createWindow.setMenuBarVisibility(menu)
+      createWindow.openDevTools()
+      createWindow.loadURL('file://' + __dirname + "/"+filename+".html?"+serialize(data))
+      return createWindow
+    }
+    function get_all_path(subject,themes,subthemes) {
+      let paths=[]
+      let path='./categories/'+subject+'/'
+      let theme_path=''
+      let subtheme_path=''
+
+      if(fs.existsSync(path)){
+        for(let theme of themes){
+          theme_path=path
+          if(fs.existsSync(path+theme+'/')){
+            theme_path+=theme+'/'
+            for(let subtheme of subthemes){
+              subtheme_path=theme_path
+              if(fs.existsSync(subtheme_path+subtheme+'/')){
+                console.log(subtheme_path+subtheme+'/');
+                for(let question of fs.readdirSync(subtheme_path+subtheme+'/'))
+                  paths.push(subtheme_path+subtheme+'/'+question)
+              }
+            }
+          }
+
+        }
+      }
+      return paths;
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log(urlParams.get('selectedThemes'));
+    var app = new Vue({
+      el:'#app',
+      data:{
+        name: urlParams.get('name'),
+        surname:urlParams.get('surname'),
+        selectedThemes:urlParams.get('selectedThemes').split(','),
+        selectedSubject:urlParams.get('selectedSubject'),
+        selectedSubThemes:urlParams.get('selectedSubThemes').split(','),
+        tips:(urlParams.get('tips')==='true'),
+        questions:[],
+        answers:{},
+        data:{},
+        tipsPath:{}
+      },
+
+
+      mounted(){
+        this.printa()
+        this.questions=this.shuffle(get_all_path(this.selectedSubject,this.selectedThemes,this.selectedSubThemes))
+        if(this.tips)
+          this.get_tipsPath()
+      },
+      methods:{
+        show_tip(id){
+          $('#'+id).collapse('toggle')
+        },
+        printa(){
+          console.log(this.selectedSubThemes);
+        },
+        finishTest(){
+          // main.openWindow('finish',[],false,true,500,350)
+          this.check_answers()
+        },
+        get_tipsPath(){
+          let json_file=JSON.parse(fs.readFileSync('./data.json'))
+          for(let question of this.questions){
+            this.tipsPath[question]=json_file[question].hint
+          }
+        },
+        shuffle(array) {
+          array.sort(() => Math.random() - 0.5);
+          return array
+        },
+        set_answer(question,label){
+          console.log(label)
+          if(this.answers.hasOwnProperty(question)){
+            if(Array.isArray(this.answers[question]))
+              if(this.answers[question].includes(label))
+                this.answers[question].splice(this.answers[question].indexOf(label),1)
+              else
+                this.answers[question].push(label)
+          }
+          else{
+            this.answers[question]=[]
+            this.answers[question].push(label)
+
+          }
+
+        },
+        check_answers(){
+          let json_file=JSON.parse(fs.readFileSync('./data.json'))
+          for (let answer in this.answers){
+            let correctAns=0
+            console.log(this.answers[answer].length);
+            if(this.answers[answer].length<=json_file[answer].answers.length){
+              for(let label of this.answers[answer]){
+                if(json_file[answer].answers.includes(label)){
+                  correctAns+=1
+                }
+              }
+            }
+              console.log(correctAns);
+              if(correctAns===0)
+                this.data[answer]=0
+              else
+                this.data[answer]=Math.round(correctAns/json_file[answer].answers.length*100)/100
+
+        }
+          this.data['name']=this.name
+          this.data['surname']=this.surname
+          this.data['subject']=this.selectedSubject
+          console.log(this.data);
+          createWindow('finish',false,true,this.data,500,350).show()
+
+
+        }
+      },
+
+
+    })
+
+  </script>
+
+</html>

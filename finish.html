@@ -4,19 +4,79 @@
     <meta charset="utf-8">
     <title></title>
     <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
-    <style media="screen">
+    <style media="print" scoped="true">
+    @media print {
+     .noprint {
+        display: none;
+     }
+    }
     </style>
   </head>
   <body>
-    <div class="card text-center">
+    <div id="app" class="card text-center">
       <div class="card-body">
         <h5 class="card-title">Результаты</h5>
-        <p class="card-text">Ваш результат: 0/5.</p>
-        <a href="#" class="btn btn-primary">Распечатать</a>
+        <p class="card-text">ФИО: {{surname}} {{name}}</p>
+        <p class="card-text">Предмет: {{subject}}</p>
+        <p v-if="correctAns" class="card-text">Ваш результат: {{(correctAns/length*100).toFixed(2)+"%"}} <div class="text-muted">{{correctAns}}/{{length}}</div></p>
+        <div class="list-group-item mb-2">
+          <div v-for="(value,key) in byCategories" class="text-muted">
+            ({{(value[0]/value[1]*100).toFixed(2)+"%"}}){{key}} : {{value[0]}} из {{value[1]}}
+          </div>
+        </div>
+        <button  @click="print" class="noprint btn btn-primary">Распечатать</button>
+        <button  @click="closeWindow" class="noprint btn btn-danger">Выйти</button>
+
       </div>
     </div>
   </body>
+  <script type="text/javascript" src="./asserts/js/vue.js"></script>
+
   <script type="text/javascript">
     require('bootstrap')
+    const urlParams = new URLSearchParams(window.location.search);
+    var vue =new Vue({
+      el:'#app',
+      data:{
+        length:0,
+        correctAns:0,
+        answers:{},
+        byCategories:{},
+        name:urlParams.get('name'),
+        surname:urlParams.get('surname'),
+        subject:urlParams.get('subject')
+      },
+      mounted(){
+        this.set_data()
+        console.log(this.answers);
+        console.log(this.byCategories);
+      },
+      methods:{
+        print(){
+          window.print()
+        },
+        closeWindow(){
+          window.close()
+        },
+        set_data(){
+          for(let answer of urlParams.entries()){
+            if(!['name','surname','subject'].includes(answer[0])){
+              this.answers[answer[0]]=answer[1]
+              if(this.byCategories.hasOwnProperty(answer[0].split('/')[4])){
+                this.byCategories[answer[0].split('/')[4]][0]+=parseFloat(answer[1])
+                this.byCategories[answer[0].split('/')[4]][1]+=1
+              }
+              else{
+                this.byCategories[answer[0].split('/')[4]]=[parseFloat(answer[1]),1]
+              }
+              this.correctAns+=parseFloat(answer[1])
+              this.length+=1
+            }
+            }
+
+        }
+      },
+    })
   </script>
+
 </html>

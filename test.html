@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title></title>
+    <title>Тест</title>
     <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
     <style media="screen">
       body,html{
@@ -11,7 +11,7 @@
       }
     </style>
   </head>
-  <body>
+  <body >
 
 
     <div  id="app" class="container-fluid mx-0  mt-2 h-100 w-100">
@@ -27,33 +27,25 @@
             <button @click="finishTest" class="mt-3 btn btn-danger" >Завершить тест!</button>
           </div>
         </div>
-        <div class="col-10" style="position:relative;overflow-y: scroll;height:100%;width:100%">
-          <div data-spy="scroll" data-target="#list-example" data-offset="0" class="scrollspy-example w-100">
-            <div v-for="(question,index) in questions" class="">
-              <img  :src="question" :id="'list-item-'+index" alt="">
-              <p>
-                <div class="form-check ml-2 mb-2" >
-                  <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-                  <label class="form-check-label" for="exampleRadios1">
-                    A
-                  </label>
+        <div class="col-10" style="height:100%;width:100%">
+          <div id="scrollspy-id" data-spy="scroll" style="position:relative;overflow-y: scroll;height:100%;width:100%" data-target="#list-example" data-offset="0" class="scrollspy-example w-100">
+            <div v-for="(question,index) in questions" style="max-width:100%; " class="">
+              <img  :src="question" class="img-rounded img-thumbnail" :id="'list-item-'+index" alt="">
+              <p v-if="tipsPath[question]" class="mt-1">
+                <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse" @click="show_tip(index)" :data-target="'#'+index" aria-expanded="false"  :aria-controls="index">
+                  Подсказка
+                </button>
+              </p>
+              <div class="collapse" :id="index">
+                <div class="card card-body" style="max-width: 100%;height:auto ">
+                  <img :src="tipsPath[question]" class="img-fluid" alt="">
                 </div>
-                <div class="form-check ml-2 mb-2" >
-                  <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-                  <label class="form-check-label" for="exampleRadios1">
-                    B
-                  </label>
-                </div>
-                <div class="form-check ml-2 mb-2" >
-                  <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-                  <label class="form-check-label" for="exampleRadios1">
-                    C
-                  </label>
-                </div>
-                <div class="form-check ml-2 mb-2" >
-                  <input class="form-check-input" type="checkbox" name="exampleRadios" id="exampleRadios1">
-                  <label class="form-check-label" for="exampleRadios1">
-                    D
+              </div>
+              <p class="ml-3">
+                <div v-for="label in ['A','B','C','D']" class="form-check ml-4 mb-2 " >
+                  <input class="form-check-input" @change="set_answer(question,label)" type="checkbox" name="exampleRadios" :id="label">
+                  <label class="form-check-label" :for="label">
+                    {{label}}
                   </label>
                 </div>
               </p>
@@ -70,16 +62,32 @@
 
 
   </body>
-  <script type="text/javascript" src="./asserts/js/vue.js">
+  <script type="text/javascript" src="main.js"></script>
+
+  <script type="text/javascript" src="./asserts/js/vue.js"></script>
 </script>
   <script type="text/javascript">
     require('./main.js')
+    const BrowserWindow=remote.BrowserWindow
+    const dialog= remote.dialog
     require('bootstrap')
-    const {remote} = require('electron')
-    const main = remote.require('./app.js');
-    const fs = require('fs');
     window.$ = require('jquery')
     window.JQuery = require('jquery')
+    function createWindow(filename,frame,menu,data,width=400,height=350){
+      var createWindow = new BrowserWindow({
+        webPreferences: {
+          nodeIntegration: true
+        },
+        width: width,
+        height: height ,
+        show: false,
+        frame:frame
+      })
+      createWindow.setMenuBarVisibility(menu)
+      createWindow.openDevTools()
+      createWindow.loadURL('file://' + __dirname + "/"+filename+".html?"+serialize(data))
+      return createWindow
+    }
     function get_all_path(subject,themes,subthemes) {
       let paths=[]
       let path='./categories/'+subject+'/'
@@ -115,20 +123,102 @@
         selectedThemes:urlParams.get('selectedThemes').split(','),
         selectedSubject:urlParams.get('selectedSubject'),
         selectedSubThemes:urlParams.get('selectedSubThemes').split(','),
-        questions:[]
+        tips:(urlParams.get('tips')==='true'),
+        questions:[],
+        answers:{},
+        data:{},
+        tipsPath:{}
       },
 
 
       mounted(){
         this.printa()
-        this.questions=get_all_path(this.selectedSubject,this.selectedThemes,this.selectedSubThemes)
+        this.questions=this.shuffle(get_all_path(this.selectedSubject,this.selectedThemes,this.selectedSubThemes))
+        if(this.tips)
+          this.get_tipsPath()
       },
       methods:{
+        show_tip(id){
+          $('#'+id).collapse('toggle')
+        },
         printa(){
           console.log(this.selectedSubThemes);
         },
         finishTest(){
-          main.openWindow('finish',[],false,true,500,350)
+          // main.openWindow('finish',[],false,true,500,350)
+          this.check_answers()
+        },
+        get_tipsPath(){
+          let json_file=JSON.parse(fs.readFileSync('./data.json'))
+          for(let question of this.questions){
+            this.tipsPath[question]=json_file[question].hint
+          }
+        },
+        shuffle(array) {
+          array.sort(() => Math.random() - 0.5);
+          return array
+        },
+        set_answer(question,label){
+          console.log(label)
+          if(this.answers.hasOwnProperty(question)){
+            if(Array.isArray(this.answers[question]))
+              if(this.answers[question].includes(label))
+                this.answers[question].splice(this.answers[question].indexOf(label),1)
+              else
+                this.answers[question].push(label)
+          }
+          else{
+            this.answers[question]=[]
+            this.answers[question].push(label)
+
+          }
+
+        },
+        check_answers(){
+          let json_file=JSON.parse(fs.readFileSync('./data.json'))
+          console.log(this.answers);
+          for (let answer in this.answers){
+            let correctAns=0
+            console.log(json_file[answer]);
+            if(this.answers[answer].length<=json_file[answer].answers.length){
+              for(let label of this.answers[answer]){
+                if(json_file[answer].answers.includes(label)){
+                  correctAns+=1
+                }
+              }
+            }
+              console.log(correctAns);
+              if(correctAns===0)
+                this.data[answer]=0
+              else
+                this.data[answer]=Math.round(correctAns/json_file[answer].answers.length*100)/100
+
+        }
+          this.data['name']=this.name
+          this.data['surname']=this.surname
+          this.data['subject']=this.selectedSubject
+          console.log(this.answers);
+          console.log(this.questions);
+          if(this.questions.length===Object.keys(this.answers).length){
+            console.log()
+            if(dialog.showMessageBoxSync({
+              type:"question",
+              buttons:['Ок','Отмена'],
+              title:"Ошибка",
+              message:'Вы уверены?'
+            })===0)
+            createWindow('finish',false,true,this.data,500,350).show()
+
+          }
+
+          else
+            dialog.showMessageBoxSync({
+              type:"info",
+              title:"Ошибка",
+              message:'Вы ответили не на все вопросы.\nПожалуйста, ответьте на все вопросы.'
+            })
+
+
         }
       },
 
