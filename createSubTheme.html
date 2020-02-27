@@ -11,7 +11,7 @@
 <body><div class="container-fluid mt-2" id="app" >
   <form>
     <div class="form-group">
-      <label for="exampleFormControlInput1">Добавьте тему:</label>
+      <label for="exampleFormControlInput1">Добавьте подтему:</label>
       <div class="input-group mb-3">
     <input type="text" class="form-control" id="choose" placeholder="Назовите тему" aria-label="Recipient's username" aria-describedby="button-addon2">
     <div class="input-group-append">
@@ -31,14 +31,31 @@
     var submit = document.getElementById("submit")
     var fileName = dir_name.value
     const urlParams = new URLSearchParams(window.location.search);
-
     function pressing(){
-      fs.mkdir(urlParams.get('path')+'/' + dir_name.value,(err)=>{
-        if(err)
-          console.log(err)
-      })
-      console.log(dir_name.value);
+
+      try {
+        fs.mkdirSync(urlParams.get('path')+'/' + dir_name.value)
+        dialog.showMessageBoxSync({
+          type:"info",
+          title:"Успешно",
+          message:'Успешно создана подтема!'
+        })
+
+
+      } catch (e) {
+        console.log(e);
+        dialog.showMessageBoxSync({
+          type:"error",
+          title:"Ошибка",
+          message:'Произошла ошибка! Попробуйте заново.\nВозможно, подтема уже создана.'
+        })
+      } finally {
+
+      }
+      ipcRenderer.send('refresh')
+
     }
+
 
 
     //=========
@@ -80,7 +97,6 @@
 
 
   </script>
-  <script type="text/javascript"src="createSubTheme.js">
   </script>
 
 </body>
