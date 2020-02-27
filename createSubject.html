@@ -9,7 +9,7 @@
   <title>Document</title>
 </head>
 <body>
-<div class="container-fluid mt-2" id="app" >
+<div class="container-fluid mt-3" id="app" >
   <form>
     <div class="form-group">
       <label for="exampleFormControlInput1">Добавьте предмет:</label>
@@ -29,72 +29,46 @@
 
 <script>
   const remote = require('electron').remote
+const dialog=remote.dialog
+ let win =remote.getCurrentWindow()
+ const fs=require('fs')
+ const ipcRenderer = require('electron').ipcRenderer
+ win.on('close',(e)=>{
+   ipcRenderer.send('refresh')
+ })
   require('bootstrap')
-
-  let win =remote.getCurrentWindow()
-  const fs=require('fs')
-  const ipcRenderer = require('electron').ipcRenderer
-  win.on('close',(e)=>{
-    ipcRenderer.send('refresh')
-  })
   var dir_name = document.getElementById("choose")
   var submit = document.getElementById("submit")
   var fileName = dir_name.value
-  const urlParams = new URLSearchParams(window.location.search);
-
   function pressing(){
-    fs.mkdir(urlParams.get('path')+'/' + dir_name.value,(err)=>{
-      if(err)
-        console.log(err)
-    })
-    console.log(dir_name.value);
+
+    try {
+      fs.mkdirSync('./categories/' + dir_name.value)
+      dialog.showMessageBoxSync({
+        type:"info",
+        title:"Успешно",
+        message:'Успешно создан предмет!'
+      })
+
+
+    } catch (e) {
+      console.log(e);
+      dialog.showMessageBoxSync({
+        type:"error",
+        title:"Ошибка",
+        message:'Произошла ошибка! Попробуйте заново.\nВозможно, предмет уже создан.'
+      })
+    } finally {
+
+    }
+    ipcRenderer.send('refresh')
+
   }
+
   function closeWindow(){
     window.close()
 
   }
-  function get_all_path(subject,themes,subthemes) {
-    let paths=[]
-    let path='./categories/'+subject+'/' + themes
-    let theme_path=''
-    let subtheme_path=''
-
-    if(fs.existsSync(path)){
-      for(let theme of themes){
-        theme_path=path
-        if(fs.existsSync(path+theme+'/')){
-          theme_path+=theme+'/'
-          for(let subtheme of subthemes){
-            subtheme_path=theme_path
-            if(fs.existsSync(subtheme_path+subtheme+'/')){
-              console.log(subtheme_path+subtheme+'/');
-              for(let question of fs.readdirSync(subtheme_path+subtheme+'/'))
-                paths.push(subtheme_path+subtheme+'/'+question)
-            }
-          }
-        }
-
-      }
-    }
-    return paths;
-  }
-
-// // your canvas drawing
-// var canvas = document.createElement('canvas')
-// var context = canvas.getContext('2d')
-// context.fillRect(0, 0, 50, 50)
-// context.fillStyle = 'red'
-// context.fillRect(50, 10, 30, 20)
-//
-// // as a buffer
-// var buffer = canvasBuffer(canvas, './vhoa0.jpg')
-//
-// // write canvas to file
-// fs.writeFile('image.png', buffer, function (err) {
-//   throw err
-// })
-  //===============================================================
-
 </script>
 </body>
 </html>
