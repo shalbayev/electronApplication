@@ -6,16 +6,16 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
 
-  <title>Document</title>
+  <title>Добавление темы</title>
 </head>
-<body><div class="container-fluid mt-2" id="app" >
+<body><div class="container-fluid mt-3" id="app" >
   <form>
     <div class="form-group">
-      <label for="exampleFormControlInput1">Добавьте подтему:</label>
+      <label for="exampleFormControlInput1">Добавьте тему:</label>
       <div class="input-group mb-3">
     <input type="text" class="form-control" id="choose" placeholder="Назовите тему" aria-label="Recipient's username" aria-describedby="button-addon2">
     <div class="input-group-append">
-      <button class="btn btn-primary" type="button" onclick="pressing()"id="submit">Добавить</button>
+      <button class="btn btn-primary" type="button" onclick="pressing()" id="submit">Добавить</button>
       <button type="button" onclick="closeWindow()" class="btn btn-danger">Выйти</button>
 
     </div>
@@ -23,9 +23,15 @@
 </div>
   </form>
 </div>
+
 <script type="text/javascript" src="./asserts/js/vue.js">
 </script>
   <script>
+    require('bootstrap')
+    const ipcRenderer = require('electron').ipcRenderer
+
+    const remote = require('electron').remote
+    const dialog=remote.dialog
     const fs=require('fs')
     var dir_name = document.getElementById("choose")
     var submit = document.getElementById("submit")
@@ -33,56 +39,35 @@
     const urlParams = new URLSearchParams(window.location.search);
 
     function pressing(){
-      fs.mkdir(urlParams.get('path')+'/' + dir_name.value,(err)=>{
-        if(err)
-          console.log(err)
-      })
-      console.log(dir_name.value);
+
+      try {
+        fs.mkdirSync(urlParams.get('path')+'/' + dir_name.value)
+        dialog.showMessageBoxSync({
+          type:"info",
+          title:"Успешно",
+          message:'Успешно создана тема!'
+        })
+
+
+      } catch (e) {
+        console.log(e);
+        dialog.showMessageBoxSync({
+          type:"error",
+          title:"Ошибка",
+          message:'Произошла ошибка! Попробуйте заново.\nВозможно, тема уже создана.'
+        })
+      } finally {
+
+      }
+      ipcRenderer.send('refresh')
+
     }
 
-
-    //=========
-    const remote = require('electron').remote
-    require('bootstrap')
-    require('./main.js')
-    const main = remote.require('./app.js');
-    window.$ = require('jquery')
-    window.JQuery = require('jquery')
     function closeWindow(){
       window.close()
     }
 
-    function get_all_path(subject,themes,subthemes) {
-      let paths=[]
-      let path='./categories/'+subject+'/'
-      let theme_path=''
-      let subtheme_path=''
-
-      if(fs.existsSync(path)){
-        for(let theme of themes){
-          theme_path=path
-          if(fs.existsSync(path+theme+'/')){
-            theme_path+=theme+'/'
-            for(let subtheme of subthemes){
-              subtheme_path=theme_path
-              if(fs.existsSync(subtheme_path+subtheme+'/')){
-                console.log(subtheme_path+subtheme+'/');
-                for(let question of fs.readdirSync(subtheme_path+subtheme+'/'))
-                  paths.push(subtheme_path+subtheme+'/'+question)
-              }
-            }
-          }
-
-        }
-      }
-      return paths;
-    }
-
-
   </script>
-  <script type="text/javascript"src="createTheme.js">
-  </script>
-
 </body>
 
 
