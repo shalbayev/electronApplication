@@ -1,5 +1,14 @@
 const {app, BrowserWindow, ipcMain} = require('electron')
 
+serialize = function(obj) {
+  var str = [];
+  for (var p in obj)
+    if (obj.hasOwnProperty(p)) {
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+    }
+  return str.join("&");
+}
+
 app.on('ready', function () {
   var mainWindow = new BrowserWindow({
     webPreferences: {
@@ -27,7 +36,7 @@ app.on('ready', function () {
     else
       secondWindow.show()
   })
-
+  startTest()
   exports.openWindow = (filename,data,maximize=false,frame=true,width=800,height=600) =>{
 
     let win = new BrowserWindow({
@@ -52,3 +61,24 @@ app.on('ready', function () {
     }
 
   })
+
+  function startTest(data) {
+    var testWindow = new BrowserWindow({
+      webPreferences: {
+        nodeIntegration: true
+      },
+      width: 400,
+      height: 100,
+      show: false,
+    })
+    testWindow.maximize()
+    testWindow.hide()
+    testWindow.loadURL('file://' + __dirname + '/test.html?')
+    testWindow.setMenuBarVisibility(false)
+    ipcMain.on('start-test', function () {
+      if (testWindow.isVisible())
+        testWindow.hide()
+      else
+        testWindow.show()
+    })
+  }

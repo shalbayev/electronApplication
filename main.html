@@ -43,7 +43,7 @@
                 </div>
               </div>
             </div>
-
+            <button class="btn btn-secondary btn-sm" type="button" @click="refresh">Обновить</button>
 
 
             </div>
@@ -61,6 +61,7 @@
 
 
       <button class="btn btn-primary" type="button" @click="startTest">Начать тест!</button>
+
       <button class="btn btn-danger" type="button" @click="closeWindow">Выйти</button>
 
     </div>
@@ -77,14 +78,21 @@
 </script>
   <script  >
   require('./main.js')
+  require('bootstrap')
+
   window.$ = require('jquery')
   window.JQuery = require('jquery')
+
   const app=require('electron').remote.app
-  require('bootstrap')
+
   let win= require('electron').remote.getCurrentWindow()
+  const dialog=require('electron').remote.dialog
   win.on('close',(e)=>{
     app.quit()
   })
+
+
+
 
   var vue = new Vue({
   el: '#app',
@@ -120,6 +128,9 @@
         this.selectedSubThemes.push(subtheme)
       }
     },
+    refresh(){
+      window.location.reload()
+    },
     get_themes(){
       this.themes=get_themes_by_subjects(this.selectedSubject)
 
@@ -144,15 +155,36 @@
       $('#'+id).collapse('toggle')
 
     },
-    startTest(){
-      openTestWindow({
-        name:this.name,
-        surname:this.surname,
-        selectedSubject:this.selectedSubject,
-        selectedThemes:this.selectedThemes,
-        selectedSubThemes:this.selectedSubThemes,
-        tips:this.tips
-      })
+    startTest:function(e){
+      if(this.name && this.surname && this.selectedSubject && this.selectedSubThemes){
+        ipcRenderer.send('start-test')
+          // openTestWindow({
+          //   name:this.name,
+          //   surname:this.surname,
+          //   selectedSubject:this.selectedSubject,
+          //   selectedThemes:this.selectedThemes,
+          //   selectedSubThemes:this.selectedSubThemes,
+          //   tips:this.tips
+          // })
+      }
+      else if(!this.selectedSubject){
+        dialog.showMessageBoxSync({
+          type:"error",
+          title:"Ошибка",
+          message:'Вы не выбрали предмет!'
+        })
+
+      }
+      else {
+        dialog.showMessageBoxSync({
+          type:"error",
+          title:"Ошибка",
+          message:'Вы не заполнили все поля!'
+        })
+      }
+
+
+
     },
     startupCheck(){
       fs.access('./data.json', fs.F_OK, (err) => {

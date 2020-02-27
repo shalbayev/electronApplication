@@ -24,7 +24,7 @@
             <option v-for="theme in themes" :value="theme.theme">{{theme.theme}}</option>
            </select>
           <button type="button" v-if="selectedSubject" class="btn btn-primary mt-1 btn-sm" @click="addTheme" name="button">Добавить тему</button>
-          <button type="button" v-if="selectedTheme" class="btn btn-danger mt-1 btn-sm" name="button">Удалить тему</button>
+          <button type="button" v-if="selectedTheme" class="btn btn-danger mt-1 btn-sm" @click="removeTheme" name="button">Удалить тему</button>
 
         </div>
         <div class="form-group">
@@ -32,8 +32,8 @@
           <select @change="get_questions" v-model="selectedSubTheme"  class="form-control" id="exampleFormControlSelect2">
             <option v-for="theme in subthemes" :value="theme">{{theme}}</option>
           </select>
-          <button type="button" v-if="selectedTheme" class="btn btn-primary mt-1 btn-sm" name="button">Добавить подтему</button>
-          <button type="button" v-if="selectedSubTheme" class="btn btn-danger mt-1 btn-sm" name="button">Удалить подтему</button>
+          <button type="button" v-if="selectedTheme" @click="addSubTheme" class="btn btn-primary mt-1 btn-sm" name="button">Добавить подтему</button>
+          <button type="button" v-if="selectedSubTheme" class="btn btn-danger mt-1 btn-sm" @click="removeSubTheme" name="button">Удалить подтему</button>
         </div>
         <div class="form-group">
           <label >Выберите вопрос:</label>
@@ -41,9 +41,11 @@
             <option v-for="(question,index) in questions" :value="question">{{index+1}}</option>
            </select>
           <button type="button" v-if="selectedSubTheme" @click="addQuestion" class="btn btn-primary mt-1 btn-sm" name="button">Добавить вопрос </button>
-          <button type="button" v-if="selectedQuestion" class="btn btn-danger mt-1 btn-sm" name="button">Удалить вопрос</button>
+          <button type="button" v-if="selectedQuestion" class="btn btn-danger mt-1 btn-sm" @click="removeQuestion" name="button">Удалить вопрос</button>
           <div v-if="questionPath" class="container mt-3 list-group-item">
-            <img  class="img-rounded"  :src="questionPath" alt="">
+            <div class="" style="width: 20rem">
+              <img :src="questionPath" class="img-fluid" style="max-width: 100%;height: auto;" alt="">
+            </div>
             <div class="row mt-2 ml-2">
               <div class="form-check ml-2 mb-2" >
                 <input class="form-check-input" type="checkbox" name="exampleRadios" id="check1">
@@ -82,44 +84,11 @@
 
   <script type="application/javascript" defer>
   require('./renderer.js')
-  const BrowserWindow =remote.BrowserWindow
   const ipcMain=remote.ipcMain
   ipcMain.on('refresh',()=>{
     window.location.reload()
   })
-  const deleteFolderRecursive = function(path) {
-      if (fs.existsSync(path)) {
-        fs.readdirSync(path).forEach((file, index) => {
-          const curPath =path + '/' + file
-          console.log(curPath);
-          if (fs.lstatSync(curPath).isFile()) {
-            fs.unlinkSync(curPath);
-             // recurse
-          } else { // delete file
-            deleteFolderRecursive(curPath);
-
-          }
-        });
-        fs.rmdirSync(path);
-      }
-    };
   require('bootstrap')
-    function createWindow(filename,frame,menu,path='abc',width=400,height=350){
-      var createWindow = new BrowserWindow({
-        webPreferences: {
-          nodeIntegration: true
-        },
-        width: width,
-        height: height ,
-        show: false,
-        frame:frame
-      })
-      createWindow.setMenuBarVisibility(menu)
-      createWindow.openDevTools()
-      createWindow.loadURL('file://' + __dirname + "/"+filename+".html?path="+path)
-      return createWindow
-    }
-
     var vue=new Vue({
       el:"#app",
       data:{
@@ -157,25 +126,46 @@
           console.log(this.qquestions);
         },
         addSubject(){
-          createWindow('createSubject',false,false,'',400,120).show()
+          createWindow('createSubject',false,false,[],false,'',400,120).show()
 
         },
         addTheme(){
           let path='./categories/'+this.selectedSubject
-          createWindow('createTheme',false,false,path,400,120).show()
+          createWindow('createTheme',false,false,[],false,path,400,120).show()
+        },
+        addSubTheme(){
+          let path='./categories/' + this.selectedSubject + '/' + this.selectedTheme
+          createWindow('createSubTheme',false,false,[],false,path,400,120).show()
         },
         addQuestion(){
           let path='./categories/'+this.selectedSubject+"/"+this.selectedTheme+'/'+this.selectedSubTheme
-          createWindow('createQuestion',false,false,path).show()
+          createWindow('createQuestion',false,false,[],false,path).show()
         },
         set_path(){
           this.questionPath='./categories/'+this.selectedSubject+"/"+this.selectedTheme+'/'+this.selectedSubTheme+'/'+this.selectedQuestion
         },
         removeSubject(){
           let path = './categories/' + this.selectedSubject
-          deleteFolderRecursive(path)
-
+          fs.rmdirSync(path,{recursive:true})
+          window.location.reload()
         },
+        removeTheme(){
+          let path ='./categories/' + this.selectedSubject + '/' + this.selectedTheme
+          fs.rmdirSync(path,{recursive:true})
+          window.location.reload()
+        },
+        removeSubTheme(){
+          let path = './categories/' + this.selectedSubject + '/' + this.selectedTheme + '/'  +this.selectedSubTheme
+          fs.rmdirSync(path,{recursive:true})
+          window.location.reload()
+        },
+        removeQuestion(){
+          let path = './categories/'+this.selectedSubject+"/"+this.selectedTheme+'/'+this.selectedSubTheme+'/'+this.selectedQuestion
+          fs.unlink(path, function (err) {
+            if (err) throw err;
+            window.location.reload()
+          });
+        }
       }
     })
   </script>

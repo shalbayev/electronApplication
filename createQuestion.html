@@ -80,17 +80,21 @@
           let number_files=fs.readdirSync(this.path).length+1
           let filename=number_files+'.'+this.selectedFile.name.split('.')[1]
           let json_file=JSON.parse(fs.readFileSync('./data.json'))
-          let hint_filename="p_"+number_files+'.'+this.selectedQuestionHint.name.split('.')[1]
-          if(this.selectedQuestionHint)
+          if(this.selectedQuestionHint){
+            let hint_filename="p_"+number_files+'.'+this.selectedQuestionHint.name.split('.')[1]
             json_file[this.path+"/"+filename]={answers:this.selectedAnswers,hint:"./hints/"+hint_filename}
+          }
           else
             json_file[this.path+"/"+filename]={answers:this.selectedAnswers,hint:''}
 
           fs.writeFileSync('./data.json',JSON.stringify(json_file))
           let image_data=fs.readFileSync(this.selectedFilePath)
           fs.writeFileSync(this.path+'/'+filename,image_data)
-          let hint_data=fs.readFileSync(this.selectedQuestionHint.path)
-          fs.writeFileSync('./hints/'+hint_filename,hint_data)
+          if(this.selectedQuestionHint){
+            let hint_data=fs.readFileSync(this.selectedQuestionHint.path)
+            fs.writeFileSync('./hints/'+hint_filename,hint_data)
+            
+          }
           console.log(JSON.parse(fs.readFileSync('./data.json')))
           if(this.selectedFiles.length-1>this.fileIndex){
             this.fileIndex+=1

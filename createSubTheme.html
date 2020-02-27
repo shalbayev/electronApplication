@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="./asserts/css/bootstrap.min.css">
+
+  <title>Document</title>
+</head>
+<body><div class="container-fluid mt-2" id="app" >
+  <form>
+    <div class="form-group">
+      <label for="exampleFormControlInput1">Добавьте подтему:</label>
+      <div class="input-group mb-3">
+    <input type="text" class="form-control" id="choose" placeholder="Назовите тему" aria-label="Recipient's username" aria-describedby="button-addon2">
+    <div class="input-group-append">
+      <button class="btn btn-primary" type="button" onclick="pressing()"id="submit">Добавить</button>
+      <button type="button" onclick="closeWindow()" class="btn btn-danger">Выйти</button>
+
+    </div>
+  </div>
+</div>
+  </form>
+</div>
+<script type="text/javascript" src="./asserts/js/vue.js">
+</script>
+  <script>
+    const fs=require('fs')
+    const remote = require('electron').remote
+    const dialog=remote.dialog
+    const ipcRenderer=require('electron').ipcRenderer
+
+    var dir_name = document.getElementById("choose")
+    var submit = document.getElementById("submit")
+    var fileName = dir_name.value
+    const urlParams = new URLSearchParams(window.location.search);
+    function pressing(){
+
+      try {
+        fs.mkdirSync(urlParams.get('path')+'/' + dir_name.value)
+        dialog.showMessageBoxSync({
+          type:"info",
+          title:"Успешно",
+          message:'Успешно создана подтема!'
+        })
+
+
+      } catch (e) {
+        console.log(e);
+        dialog.showMessageBoxSync({
+          type:"error",
+          title:"Ошибка",
+          message:'Произошла ошибка! Попробуйте заново.\nВозможно, подтема уже создана.'
+        })
+      } finally {
+
+      }
+      ipcRenderer.send('refresh')
+
+    }
+
+
+
+    //=========
+
+    require('bootstrap')
+    require('./main.js')
+    const main = remote.require('./app.js');
+    window.$ = require('jquery')
+    window.JQuery = require('jquery')
+    function closeWindow(){
+      window.close()
+    }
+
+    function get_all_path(subject,themes,subthemes) {
+      let paths=[]
+      let path='./categories/'+subject+'/'
+      let theme_path=''
+      let subtheme_path=''
+
+      if(fs.existsSync(path)){
+        for(let theme of themes){
+          theme_path=path
+          if(fs.existsSync(path+theme+'/')){
+            theme_path+=theme+'/'
+            for(let subtheme of subthemes){
+              subtheme_path=theme_path
+              if(fs.existsSync(subtheme_path+subtheme+'/')){
+                console.log(subtheme_path+subtheme+'/');
+                for(let question of fs.readdirSync(subtheme_path+subtheme+'/'))
+                  paths.push(subtheme_path+subtheme+'/'+question)
+              }
+            }
+          }
+
+        }
+      }
+      return paths;
+    }
+
+
+  </script>
+
+</body>
+
+
+</html>

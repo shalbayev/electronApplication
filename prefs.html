@@ -21,20 +21,21 @@
 </form>
 
 </body>
+<script type="text/javascript" src="./main.js">
+
+</script>
 <script>
-  const remote = require('electron').remote
-  const main = remote.require('./app.js')
   var win = remote.getCurrentWindow()
 
   require('bootstrap')
-  win.focus()
-  window.focus()
   var password = document.getElementById('password');
   var btn = document.getElementById('signInBtn');
   btn.addEventListener('click',()=>{
     if (password.value==="123"){
-      main.openWindow('pageThree',[],false,true,800,500,true)
-      window.close()
+      let win=createWindow('pageThree',false,false,[],false,'',500,550)
+      win.show()
+      window.hide()
+
     }
   })
 
@@ -42,10 +43,7 @@
     window.close()
   }
 
-  window.addEventListener('blur',()=>{
-    if(!win.isFocused())
-      win.close()
-  })
+
 
 
 

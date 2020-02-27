@@ -1,10 +1,33 @@
-
 const {remote, ipcRenderer} = require('electron')
-const main = remote.require('./app.js');
-let mainWindow=remote.getGlobal('mainWindow')
+const BrowserWindow=require('electron').remote.BrowserWindow
 const {Menu, MenuItem} = remote
 const fs = require('fs');
 const menu = new Menu()
+
+
+function createWindow(filename,frame,menu,data=[],maximize=false,path='',width=400,height=350){
+  var createWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true
+    },
+    width: width,
+    height: height ,
+    show: false,
+    frame:frame
+  })
+  createWindow.setMenuBarVisibility(menu)
+  createWindow.openDevTools()
+  if(maximize)
+    createWindow.maximize()
+  if(path)
+    createWindow.loadURL('file://' + __dirname + "/"+filename+".html?"+serialize(data)+"&path"+path)
+  else
+    createWindow.loadURL('file://' + __dirname + "/"+filename+".html?"+serialize(data))
+    return createWindow
+}
+
+
+
 menu.append(new MenuItem(
   {
     label: 'Основное',
@@ -12,7 +35,8 @@ menu.append(new MenuItem(
       {
         label: 'Добавить/Изменить вопрос',
         click: function () {
-            main.openWindow('prefs',[],false,false,500,150)
+
+          ipcRenderer.send('toggle-prefs')
         }
       }
     ]
@@ -49,5 +73,5 @@ serialize = function(obj) {
 }
 
 function openTestWindow(data){
-   main.openWindow('test',serialize(data),true,false)
+   createWindow('test',false,false,data,true).show()
 }
